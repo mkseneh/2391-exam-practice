@@ -415,24 +415,12 @@ if user_answer is not None:
         start_exam_timer()
 
 # --- Navigation buttons ---
-col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+col1, col2, col3 = st.columns([1, 1, 1])
 with col1:
     if st.button("Previous", disabled=(i == 0)):
         st.session_state.current_q -= 1
         st.rerun()
 with col2:
-    if st.button("Restart"):
-        st.session_state.current_q = 0
-        st.session_state.user_answers = {}
-        st.session_state.shuffled_options = {}
-        st.session_state.quiz_completed = False
-        st.session_state.quiz_submitted = False
-        st.session_state.exam_started = False
-        st.session_state.exam_start_time = None
-        st.session_state.time_up = False
-        st.session_state.auto_submitted = False
-        st.rerun()
-with col3:
     if is_last_question:
         if st.button("Next", disabled=True):
             pass
@@ -440,7 +428,7 @@ with col3:
         if st.button("Next"):
             st.session_state.current_q += 1
             st.rerun()
-with col4:
+with col3:
     answered_count = len(st.session_state.user_answers)
     submit_disabled = answered_count == 0 or st.session_state.time_up
     
