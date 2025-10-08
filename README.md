@@ -9,4 +9,4 @@ Practice quiz for City & Guilds 2391-052 Initial and Periodic Inspection and Tes
 - Instant scoring
 
 ## Live App
-https://your-app-name.streamlit.app
+https://2391-exam-practice-bpdsv8tmhmsmqmjxrnrh6o.streamlit.app
