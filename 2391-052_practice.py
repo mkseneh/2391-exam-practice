@@ -52,8 +52,8 @@ st.markdown("""
     .question-container {
         background-color: var(--secondary-background-color);
         border-radius: 8px;
-        padding: 15px;
-        margin: 10px 0;
+        padding: 20px;
+        margin: 15px 0;
         border-left: 4px solid #2196F3;
         border: 1px solid var(--border-color);
     }
@@ -62,6 +62,17 @@ st.markdown("""
         margin-bottom: 12px;
         font-size: 1.05em;
         color: var(--text-color);
+    }
+    .answer-section {
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 1px solid var(--border-color);
+    }
+    .answer-label {
+        font-weight: bold;
+        color: var(--text-color);
+        margin-bottom: 10px;
+        font-size: 1em;
     }
     
     /* Dark mode variables */
@@ -292,22 +303,13 @@ if current_scenario and current_scenario != 'nan' and current_scenario != '':
         except Exception as e:
             st.warning("Could not load scenario information")
 
-# --- Display the actual question with paragraph support ---
-st.write("**Question:**")
+# --- Display the actual question with answer section inside the box ---
 question_text = str(row['Question'])
 
 # Split question into paragraphs and display each as separate markdown
 question_paragraphs = [p.strip() for p in question_text.split('\n') if p.strip()]
 
-# Display question in a styled container
-question_html = '<div class="question-container">'
-for paragraph in question_paragraphs:
-    question_html += f'<div class="question-paragraph">{paragraph}</div>'
-question_html += '</div>'
-
-st.markdown(question_html, unsafe_allow_html=True)
-
-# --- Find the index of previously selected answer ---
+# Find the index of previously selected answer
 previous_answer = st.session_state.user_answers.get(i)
 if previous_answer is not None:
     try:
@@ -317,11 +319,33 @@ if previous_answer is not None:
 else:
     selected_index = None
 
-# --- Display radio button ---
-user_answer = st.radio("Choose your answer:", 
-                       shuffled_options, 
-                       index=selected_index,
-                       key=f"q{i}")
+# Create a container for the question and answer section
+with st.container():
+    # Display question in a styled container with answer section inside
+    question_html = '''
+    <div class="question-container">
+        <div style="font-weight: bold; margin-bottom: 15px; color: var(--text-color);">Question:</div>
+    '''
+    
+    for paragraph in question_paragraphs:
+        question_html += f'<div class="question-paragraph">{paragraph}</div>'
+    
+    question_html += '''
+        <div class="answer-section">
+            <div class="answer-label">Choose your answer:</div>
+    '''
+    
+    st.markdown(question_html, unsafe_allow_html=True)
+    
+    # Display radio button inside the question container
+    user_answer = st.radio("", 
+                           shuffled_options, 
+                           index=selected_index,
+                           key=f"q{i}",
+                           label_visibility="collapsed")
+    
+    # Close the question container HTML
+    st.markdown('</div></div>', unsafe_allow_html=True)
 
 # Store the selected option
 if user_answer is not None:
@@ -340,7 +364,7 @@ with col2:
         st.session_state.shuffled_options = {}
         st.session_state.quiz_completed = False
         st.session_state.quiz_submitted = False
-        # Don't reset scenario_groups or questions_loaded to maintain state
+        # Keep questions_loaded and scenario_groups to avoid reloading
         st.rerun()
 with col3:
     if is_last_question:
