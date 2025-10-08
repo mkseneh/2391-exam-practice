@@ -78,20 +78,9 @@ st.markdown("""
     }
     .timer-warning {
         background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-        animation: pulse 1.5s infinite;
     }
     .timer-critical {
         background: linear-gradient(135deg, #ff0000 0%, #8b0000 100%);
-        animation: blink 1s infinite;
-    }
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.02); }
-        100% { transform: scale(1); }
-    }
-    @keyframes blink {
-        0%, 50% { opacity: 1; }
-        51%, 100% { opacity: 0.7; }
     }
     
     /* Dark mode variables */
@@ -132,15 +121,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Add rate limiting protection
-if 'last_request' not in st.session_state:
-    st.session_state.last_request = time.time()
-else:
-    current_time = time.time()
-    if current_time - st.session_state.last_request < 1:  # 1 second between requests
-        time.sleep(0.5)
-    st.session_state.last_request = current_time
-
 # Initialize ALL session state variables at the beginning
 def initialize_session_state():
     """Initialize all session state variables"""
@@ -161,6 +141,7 @@ def initialize_session_state():
         st.session_state.exam_duration = 3 * 60 * 60  # 3 hours in seconds
         st.session_state.time_up = False
         st.session_state.auto_submitted = False
+        st.session_state.last_timer_update = 0
 
 # Call initialization function
 initialize_session_state()
@@ -199,12 +180,6 @@ def format_time(seconds):
     minutes = int((seconds % 3600) // 60)
     secs = int(seconds % 60)
     return f"{hours:02d}:{minutes:02d}:{secs:02d}"
-
-# Auto-submit if time is up
-if st.session_state.time_up and not st.session_state.quiz_submitted and not st.session_state.auto_submitted:
-    st.session_state.auto_submitted = True
-    st.session_state.quiz_submitted = True
-    st.rerun()
 
 # Add refresh button and title in the same row
 col1, col2 = st.columns([3, 1])
@@ -297,6 +272,11 @@ st.caption(f"Questions: {num_questions} | Last updated: {time.strftime('%H:%M:%S
 if not st.session_state.quiz_submitted:
     remaining_time = get_remaining_time()
     
+    # Check if time is up and auto-submit
+    if st.session_state.time_up and not st.session_state.quiz_submitted:
+        st.session_state.quiz_submitted = True
+        st.rerun()
+    
     # Start timer automatically when user starts answering or show start button
     if not st.session_state.exam_started:
         st.warning("⏰ **Exam Timer**: 3 hours | Click 'Start Exam Timer' to begin")
@@ -319,14 +299,6 @@ if not st.session_state.quiz_submitted:
         </div>
         """
         st.markdown(timer_html, unsafe_allow_html=True)
-        
-        # Auto-refresh the timer every 30 seconds (or more frequently when time is low)
-        refresh_interval = 30
-        if remaining_time < 600:  # Refresh more often when time is critical
-            refresh_interval = 10
-        if remaining_time > 0:
-            time.sleep(0.1)  # Small delay to ensure UI updates
-            st.rerun()
 
 # --- Pre-process scenario groups ---
 def build_scenario_groups(df):
@@ -472,7 +444,11 @@ with col4:
     answered_count = len(st.session_state.user_answers)
     submit_disabled = answered_count == 0 or st.session_state.time_up
     
-    if st.button("Submit Quiz", type="primary", disabled=submit_disabled) or st.session_state.time_up:
+    submit_label = "Submit Quiz"
+    if st.session_state.time_up:
+        submit_label = "Time's Up!"
+    
+    if st.button(submit_label, type="primary", disabled=submit_disabled):
         st.session_state.quiz_submitted = True
         st.rerun()
 
