@@ -111,27 +111,41 @@ else:
         time.sleep(0.5)
     st.session_state.last_request = current_time
 
+# Initialize ALL session state variables at the beginning
+def initialize_session_state():
+    """Initialize all session state variables"""
+    if 'initialized' not in st.session_state:
+        st.session_state.initialized = True
+        st.session_state.current_q = 0
+        st.session_state.user_answers = {}
+        st.session_state.shuffled_options = {}
+        st.session_state.quiz_completed = False
+        st.session_state.quiz_submitted = False
+        st.session_state.scenario_groups = {}
+        st.session_state.loading_shown = False
+        st.session_state.questions_loaded = False
+        st.session_state.questions_df = pd.DataFrame()
+
+# Call initialization function
+initialize_session_state()
+
 # Add refresh button and title in the same row
 col1, col2 = st.columns([3, 1])
 with col1:
     st.title("Initial and Periodic Inspection and Testing of Electrical Installations (2391-052)")
 with col2:
     if st.button("🔄 Refresh Questions", type="secondary"):
-        # Clear the cache and reload
+        # Clear cache and reset ONLY what's necessary
         st.cache_data.clear()
-        st.session_state.current_q = 0
-        st.session_state.user_answers = {}
-        st.session_state.shuffled_options = {}
+        st.session_state.questions_loaded = False
+        st.session_state.questions_df = pd.DataFrame()
         st.session_state.scenario_groups = {}
         st.rerun()
 
-# Show loading message immediately when refreshing
-if 'loading_shown' not in st.session_state:
-    st.session_state.loading_shown = False
-
-if st.session_state.get('current_q', 0) == 0 and not st.session_state.loading_shown:
+# Show loading message only when actually loading
+if not st.session_state.questions_loaded and not st.session_state.loading_shown:
     loading_placeholder = st.empty()
-    loading_placeholder.info("🔄 Loading...")
+    loading_placeholder.info("🔄 Loading questions...")
     st.session_state.loading_shown = True
 
 # Configuration with shorter cache time - UPDATED SECURE VERSION
@@ -179,36 +193,28 @@ def load_questions_data():
         st.error(f"Unexpected error: {e}")
         return pd.DataFrame()
 
-# Load questions
-questions_df = load_questions_data()
+# Load questions only if not already loaded
+if not st.session_state.questions_loaded or st.session_state.questions_df.empty:
+    questions_df = load_questions_data()
+    
+    if not questions_df.empty:
+        st.session_state.questions_df = questions_df
+        st.session_state.questions_loaded = True
+        
+        # Clear loading message after data is loaded
+        if 'loading_placeholder' in locals():
+            loading_placeholder.empty()
+        st.session_state.loading_shown = False
+    else:
+        st.error("No questions could be loaded. Please check your data source.")
+        st.stop()
 
-# Clear loading message after data is loaded
-if 'loading_placeholder' in locals():
-    loading_placeholder.empty()
-    # Don't show success message - it's unnecessary
-
-if questions_df.empty:
-    st.error("No questions could be loaded. Please check your data source.")
-    st.stop()
-
+# Use the questions from session state
+questions_df = st.session_state.questions_df
 num_questions = len(questions_df)
 
 # Show last update time (stays visible)
 st.caption(f"Questions: {num_questions} | Last updated: {time.strftime('%H:%M:%S')}")
-
-# --- Initialize session state ---
-if 'current_q' not in st.session_state:
-    st.session_state.current_q = 0
-if 'user_answers' not in st.session_state:
-    st.session_state.user_answers = {}
-if 'shuffled_options' not in st.session_state:
-    st.session_state.shuffled_options = {}
-if 'quiz_completed' not in st.session_state:
-    st.session_state.quiz_completed = False
-if 'quiz_submitted' not in st.session_state:
-    st.session_state.quiz_submitted = False
-if 'scenario_groups' not in st.session_state:
-    st.session_state.scenario_groups = {}
 
 # --- Pre-process scenario groups ---
 def build_scenario_groups(df):
@@ -221,7 +227,7 @@ def build_scenario_groups(df):
             scenario_groups[scenario].append(idx)
     return scenario_groups
 
-# Build scenario groups once
+# Build scenario groups if not already built
 if not st.session_state.scenario_groups:
     st.session_state.scenario_groups = build_scenario_groups(questions_df)
 
@@ -334,8 +340,7 @@ with col2:
         st.session_state.shuffled_options = {}
         st.session_state.quiz_completed = False
         st.session_state.quiz_submitted = False
-        st.session_state.scenario_groups = {}
-        st.session_state.loading_shown = False
+        # Don't reset scenario_groups or questions_loaded to maintain state
         st.rerun()
 with col3:
     if is_last_question:
@@ -561,6 +566,5 @@ if st.session_state.quiz_submitted:
         st.session_state.shuffled_options = {}
         st.session_state.quiz_completed = False
         st.session_state.quiz_submitted = False
-        st.session_state.scenario_groups = {}
-        st.session_state.loading_shown = False
+        # Keep questions_loaded and scenario_groups to avoid reloading
         st.rerun()
