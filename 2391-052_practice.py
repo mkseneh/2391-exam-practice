@@ -13,6 +13,95 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+# Add dark mode compatible CSS
+st.markdown("""
+<style>
+    /* Scenario container with dark mode support */
+    .scenario-container {
+        background-color: var(--background-color);
+        border-left: 5px solid #4CAF50;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 15px 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: 1px solid var(--border-color);
+    }
+    .scenario-header {
+        color: #4CAF50;
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    .scenario-content {
+        color: var(--text-color);
+        line-height: 1.6;
+        font-size: 1em;
+        margin-bottom: 8px;
+    }
+    .scenario-progress {
+        background-color: rgba(76, 175, 80, 0.1);
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 0.9em;
+        color: #4CAF50;
+        margin-top: 10px;
+        display: inline-block;
+    }
+    
+    /* Question container with dark mode support */
+    .question-container {
+        background-color: var(--secondary-background-color);
+        border-radius: 8px;
+        padding: 15px;
+        margin: 10px 0;
+        border-left: 4px solid #2196F3;
+        border: 1px solid var(--border-color);
+    }
+    .question-paragraph {
+        line-height: 1.6;
+        margin-bottom: 12px;
+        font-size: 1.05em;
+        color: var(--text-color);
+    }
+    
+    /* Dark mode variables */
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --background-color: #0e1117;
+            --secondary-background-color: #262730;
+            --text-color: #fafafa;
+            --border-color: #555;
+        }
+    }
+    @media (prefers-color-scheme: light) {
+        :root {
+            --background-color: #f0f8ff;
+            --secondary-background-color: #f8f9fa;
+            --text-color: #31333F;
+            --border-color: #ddd;
+        }
+    }
+    
+    /* Ensure radio buttons are readable */
+    .stRadio > div {
+        color: var(--text-color);
+    }
+    
+    /* Make all text readable in dark mode */
+    .stApp {
+        color: var(--text-color);
+    }
+    
+    /* Style metric cards for dark mode */
+    [data-testid="metric-container"] {
+        background-color: var(--secondary-background-color);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 10px;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 # Add rate limiting protection
 if 'last_request' not in st.session_state:
     st.session_state.last_request = time.time()
@@ -178,41 +267,6 @@ if current_scenario and current_scenario != 'nan' and current_scenario != '':
             current_scenario_position = current_scenario_indices.index(i) + 1
             total_scenario_questions = len(current_scenario_indices)
             
-            # Beautiful scenario container
-            st.markdown("""
-            <style>
-            .scenario-container {
-                background-color: #f0f8ff;
-                border-left: 5px solid #4CAF50;
-                border-radius: 8px;
-                padding: 20px;
-                margin: 15px 0;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-            .scenario-header {
-                color: #2E7D32;
-                font-size: 1.2em;
-                font-weight: bold;
-                margin-bottom: 10px;
-            }
-            .scenario-content {
-                color: #333;
-                line-height: 1.6;
-                font-size: 1em;
-                margin-bottom: 8px;
-            }
-            .scenario-progress {
-                background-color: #e8f5e8;
-                padding: 8px 15px;
-                border-radius: 20px;
-                font-size: 0.9em;
-                color: #2E7D32;
-                margin-top: 10px;
-                display: inline-block;
-            }
-            </style>
-            """, unsafe_allow_html=True)
-            
             # Split scenario into paragraphs
             scenario_paragraphs = [p.strip() for p in current_scenario.split('\n') if p.strip()]
             
@@ -238,24 +292,6 @@ question_text = str(row['Question'])
 
 # Split question into paragraphs and display each as separate markdown
 question_paragraphs = [p.strip() for p in question_text.split('\n') if p.strip()]
-
-# Apply question styling
-st.markdown("""
-<style>
-.question-paragraph {
-    line-height: 1.6;
-    margin-bottom: 12px;
-    font-size: 1.05em;
-}
-.question-container {
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    padding: 15px;
-    margin: 10px 0;
-    border-left: 4px solid #2196F3;
-}
-</style>
-""", unsafe_allow_html=True)
 
 # Display question in a styled container
 question_html = '<div class="question-container">'
@@ -476,12 +512,12 @@ if st.session_state.quiz_submitted:
                 scenario_paragraphs = [p.strip() for p in scenario_value.split('\n') if p.strip()]
                 
                 scenario_html = '''
-                <div style="background-color: #f0f8ff; border-left: 5px solid #4CAF50; border-radius: 8px; padding: 15px; margin: 10px 0;">
-                    <div style="color: #2E7D32; font-weight: bold; margin-bottom: 8px;">📖 SCENARIO</div>
+                <div class="scenario-container">
+                    <div class="scenario-header">📖 SCENARIO</div>
                 '''
                 
                 for paragraph in scenario_paragraphs:
-                    scenario_html += f'<div style="color: #333; line-height: 1.5; margin-bottom: 5px;">{paragraph}</div>'
+                    scenario_html += f'<div class="scenario-content">{paragraph}</div>'
                 
                 scenario_html += '</div>'
                 st.markdown(scenario_html, unsafe_allow_html=True)
@@ -493,11 +529,9 @@ if st.session_state.quiz_submitted:
             question_text = result['Question']
             question_paragraphs = [p.strip() for p in question_text.split('\n') if p.strip()]
             
-            question_html = '''
-            <div style="background-color: #f8f9fa; border-radius: 8px; padding: 15px; margin: 10px 0; border-left: 4px solid #2196F3;">
-            '''
+            question_html = '<div class="question-container">'
             for paragraph in question_paragraphs:
-                question_html += f'<div style="line-height: 1.6; margin-bottom: 10px;">{paragraph}</div>'
+                question_html += f'<div class="question-paragraph">{paragraph}</div>'
             question_html += '</div>'
             
             st.markdown(question_html, unsafe_allow_html=True)
