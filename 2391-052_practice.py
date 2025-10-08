@@ -4,6 +4,7 @@ import random
 import requests
 import io
 import time
+import datetime
 
 # Security headers and configuration
 st.set_page_config(
@@ -62,6 +63,35 @@ st.markdown("""
         margin-bottom: 12px;
         font-size: 1.05em;
         color: var(--text-color);
+    }
+    
+    /* Timer styling */
+    .timer-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+        padding: 15px;
+        margin: 10px 0;
+        color: white;
+        text-align: center;
+        font-weight: bold;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .timer-warning {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        animation: pulse 1.5s infinite;
+    }
+    .timer-critical {
+        background: linear-gradient(135deg, #ff0000 0%, #8b0000 100%);
+        animation: blink 1s infinite;
+    }
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+        100% { transform: scale(1); }
+    }
+    @keyframes blink {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0.7; }
     }
     
     /* Dark mode variables */
@@ -125,9 +155,56 @@ def initialize_session_state():
         st.session_state.loading_shown = False
         st.session_state.questions_loaded = False
         st.session_state.questions_df = pd.DataFrame()
+        # Timer variables
+        st.session_state.exam_started = False
+        st.session_state.exam_start_time = None
+        st.session_state.exam_duration = 3 * 60 * 60  # 3 hours in seconds
+        st.session_state.time_up = False
+        st.session_state.auto_submitted = False
 
 # Call initialization function
 initialize_session_state()
+
+# Timer functions
+def start_exam_timer():
+    """Start the exam timer"""
+    if not st.session_state.exam_started:
+        st.session_state.exam_started = True
+        st.session_state.exam_start_time = time.time()
+        st.session_state.time_up = False
+        st.session_state.auto_submitted = False
+
+def get_remaining_time():
+    """Calculate remaining time"""
+    if not st.session_state.exam_started or st.session_state.time_up:
+        return 0
+    
+    elapsed = time.time() - st.session_state.exam_start_time
+    remaining = st.session_state.exam_duration - elapsed
+    
+    if remaining <= 0:
+        st.session_state.time_up = True
+        if not st.session_state.auto_submitted and not st.session_state.quiz_submitted:
+            st.session_state.auto_submitted = True
+            st.session_state.quiz_submitted = True
+        return 0
+    
+    return remaining
+
+def format_time(seconds):
+    """Format seconds into HH:MM:SS"""
+    if seconds <= 0:
+        return "00:00:00"
+    hours = int(seconds // 3600)
+    minutes = int((seconds % 3600) // 60)
+    secs = int(seconds % 60)
+    return f"{hours:02d}:{minutes:02d}:{secs:02d}"
+
+# Auto-submit if time is up
+if st.session_state.time_up and not st.session_state.quiz_submitted and not st.session_state.auto_submitted:
+    st.session_state.auto_submitted = True
+    st.session_state.quiz_submitted = True
+    st.rerun()
 
 # Add refresh button and title in the same row
 col1, col2 = st.columns([3, 1])
@@ -215,6 +292,41 @@ num_questions = len(questions_df)
 
 # Show last update time (stays visible)
 st.caption(f"Questions: {num_questions} | Last updated: {time.strftime('%H:%M:%S')}")
+
+# --- Exam Timer Display ---
+if not st.session_state.quiz_submitted:
+    remaining_time = get_remaining_time()
+    
+    # Start timer automatically when user starts answering or show start button
+    if not st.session_state.exam_started:
+        st.warning("⏰ **Exam Timer**: 3 hours | Click 'Start Exam Timer' to begin")
+        if st.button("🚀 Start Exam Timer", type="primary"):
+            start_exam_timer()
+            st.rerun()
+    else:
+        # Display timer with appropriate styling
+        timer_class = "timer-container"
+        if remaining_time < 1800:  # 30 minutes
+            timer_class += " timer-warning"
+        if remaining_time < 600:   # 10 minutes
+            timer_class += " timer-critical"
+        
+        timer_html = f"""
+        <div class="{timer_class}">
+            <div style="font-size: 1.1em;">⏰ EXAM TIME REMAINING</div>
+            <div style="font-size: 1.8em; margin: 10px 0;">{format_time(remaining_time)}</div>
+            <div style="font-size: 0.9em;">3 Hour Time Limit</div>
+        </div>
+        """
+        st.markdown(timer_html, unsafe_allow_html=True)
+        
+        # Auto-refresh the timer every 30 seconds (or more frequently when time is low)
+        refresh_interval = 30
+        if remaining_time < 600:  # Refresh more often when time is critical
+            refresh_interval = 10
+        if remaining_time > 0:
+            time.sleep(0.1)  # Small delay to ensure UI updates
+            st.rerun()
 
 # --- Pre-process scenario groups ---
 def build_scenario_groups(df):
@@ -326,6 +438,9 @@ user_answer = st.radio("Choose your answer:",
 # Store the selected option
 if user_answer is not None:
     st.session_state.user_answers[i] = user_answer
+    # Auto-start timer when user starts answering
+    if not st.session_state.exam_started:
+        start_exam_timer()
 
 # --- Navigation buttons ---
 col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
@@ -340,7 +455,10 @@ with col2:
         st.session_state.shuffled_options = {}
         st.session_state.quiz_completed = False
         st.session_state.quiz_submitted = False
-        # Don't reset scenario_groups or questions_loaded to maintain state
+        st.session_state.exam_started = False
+        st.session_state.exam_start_time = None
+        st.session_state.time_up = False
+        st.session_state.auto_submitted = False
         st.rerun()
 with col3:
     if is_last_question:
@@ -352,9 +470,9 @@ with col3:
             st.rerun()
 with col4:
     answered_count = len(st.session_state.user_answers)
-    submit_disabled = answered_count == 0
+    submit_disabled = answered_count == 0 or st.session_state.time_up
     
-    if st.button("Submit Quiz", type="primary", disabled=submit_disabled):
+    if st.button("Submit Quiz", type="primary", disabled=submit_disabled) or st.session_state.time_up:
         st.session_state.quiz_submitted = True
         st.rerun()
 
@@ -455,6 +573,10 @@ if not st.session_state.quiz_submitted:
 
 # --- Results page after submission ---
 if st.session_state.quiz_submitted:
+    # Show auto-submission message if time was up
+    if st.session_state.time_up and st.session_state.auto_submitted:
+        st.error("⏰ **TIME'S UP!** Your exam has been automatically submitted.")
+    
     # Calculate score
     correct_count = 0
     results = []
@@ -566,5 +688,8 @@ if st.session_state.quiz_submitted:
         st.session_state.shuffled_options = {}
         st.session_state.quiz_completed = False
         st.session_state.quiz_submitted = False
-        # Keep questions_loaded and scenario_groups to avoid reloading
+        st.session_state.exam_started = False
+        st.session_state.exam_start_time = None
+        st.session_state.time_up = False
+        st.session_state.auto_submitted = False
         st.rerun()
