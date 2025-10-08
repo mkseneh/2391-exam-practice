@@ -51,95 +51,51 @@ st.markdown("""
     /* Question container with dark mode support */
     .question-container {
         background-color: var(--secondary-background-color);
-        border-radius: 12px;
-        padding: 25px;
-        margin: 20px 0;
-        border-left: 6px solid #2196F3;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 15px 0;
+        border-left: 4px solid #2196F3;
         border: 1px solid var(--border-color);
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
     .question-paragraph {
         line-height: 1.6;
-        margin-bottom: 15px;
-        font-size: 1.1em;
+        margin-bottom: 12px;
+        font-size: 1.05em;
         color: var(--text-color);
     }
     .answer-section {
-        margin-top: 25px;
-        padding-top: 20px;
-        border-top: 2px solid var(--border-color);
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 1px solid var(--border-color);
     }
     .answer-label {
         font-weight: bold;
         color: var(--text-color);
-        margin-bottom: 15px;
-        font-size: 1.1em;
-        display: block;
-    }
-    
-    /* Custom radio button styling */
-    .stRadio > div {
-        background-color: var(--background-color);
-        padding: 15px;
-        border-radius: 8px;
-        border: 1px solid var(--border-color);
-    }
-    
-    /* Custom option styling */
-    .option-item {
-        padding: 12px 15px;
-        margin: 8px 0;
-        border-radius: 6px;
-        border: 1px solid transparent;
-        transition: all 0.3s ease;
-        background-color: var(--background-color);
-    }
-    
-    .option-item:hover {
-        background-color: rgba(33, 150, 243, 0.1);
-        border-color: #2196F3;
-        transform: translateY(-1px);
-    }
-    
-    .option-item.selected {
-        background-color: rgba(33, 150, 243, 0.15);
-        border-color: #2196F3;
-        box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
-    }
-    
-    /* Radio button label styling */
-    .stRadio label {
+        margin-bottom: 10px;
         font-size: 1em;
-        color: var(--text-color) !important;
-        padding: 10px;
-        border-radius: 6px;
-        transition: all 0.3s ease;
-    }
-    
-    .stRadio label:hover {
-        background-color: rgba(33, 150, 243, 0.1);
-    }
-    
-    .stRadio [data-testid="stMarkdownContainer"] {
-        color: var(--text-color) !important;
     }
     
     /* Dark mode variables */
     @media (prefers-color-scheme: dark) {
         :root {
             --background-color: #0e1117;
-            --secondary-background-color: #1e1e1e;
+            --secondary-background-color: #262730;
             --text-color: #fafafa;
-            --border-color: #444;
+            --border-color: #555;
         }
     }
     @media (prefers-color-scheme: light) {
         :root {
-            --background-color: #ffffff;
+            --background-color: #f0f8ff;
             --secondary-background-color: #f8f9fa;
             --text-color: #31333F;
             --border-color: #ddd;
         }
+    }
+    
+    /* Ensure radio buttons are readable */
+    .stRadio > div {
+        color: var(--text-color);
     }
     
     /* Make all text readable in dark mode */
@@ -153,23 +109,6 @@ st.markdown("""
         border: 1px solid var(--border-color);
         border-radius: 8px;
         padding: 10px;
-    }
-    
-    /* Progress bar styling */
-    .stProgress > div > div > div {
-        background-color: #2196F3;
-    }
-    
-    /* Button styling */
-    .stButton button {
-        border-radius: 6px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-    }
-    
-    .stButton button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -385,7 +324,7 @@ with st.container():
     # Display question in a styled container with answer section inside
     question_html = '''
     <div class="question-container">
-        <div style="font-weight: bold; margin-bottom: 20px; color: var(--text-color); font-size: 1.2em;">Question:</div>
+        <div style="font-weight: bold; margin-bottom: 15px; color: var(--text-color);">Question:</div>
     '''
     
     for paragraph in question_paragraphs:
@@ -393,15 +332,12 @@ with st.container():
     
     question_html += '''
         <div class="answer-section">
-            <div class="answer-label">📝 Choose your answer:</div>
+            <div class="answer-label">Choose your answer:</div>
     '''
     
     st.markdown(question_html, unsafe_allow_html=True)
     
-    # Add some spacing before the options
-    st.markdown('<div style="margin-top: 10px;"></div>', unsafe_allow_html=True)
-    
-    # Display radio button inside the question container with custom styling
+    # Display radio button inside the question container
     user_answer = st.radio("", 
                            shuffled_options, 
                            index=selected_index,
@@ -416,36 +352,33 @@ if user_answer is not None:
     st.session_state.user_answers[i] = user_answer
 
 # --- Navigation buttons ---
-st.markdown("---")
-st.write("**Navigation:**")
-
-nav_col1, nav_col2, nav_col3, nav_col4 = st.columns([1, 1, 1, 1])
-with nav_col1:
-    if st.button("⬅️ Previous", disabled=(i == 0), use_container_width=True):
+col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+with col1:
+    if st.button("Previous", disabled=(i == 0)):
         st.session_state.current_q -= 1
         st.rerun()
-with nav_col2:
-    if st.button("🔄 Restart", use_container_width=True):
+with col2:
+    if st.button("Restart"):
         st.session_state.current_q = 0
         st.session_state.user_answers = {}
         st.session_state.shuffled_options = {}
         st.session_state.quiz_completed = False
         st.session_state.quiz_submitted = False
+        # Keep questions_loaded and scenario_groups to avoid reloading
         st.rerun()
-with nav_col3:
+with col3:
     if is_last_question:
-        if st.button("Next ➡️", disabled=True, use_container_width=True):
+        if st.button("Next", disabled=True):
             pass
     else:
-        if st.button("Next ➡️", use_container_width=True):
+        if st.button("Next"):
             st.session_state.current_q += 1
             st.rerun()
-with nav_col4:
+with col4:
     answered_count = len(st.session_state.user_answers)
     submit_disabled = answered_count == 0
-    submit_label = "✅ Submit Quiz" if answered_count == num_questions else f"Submit ({answered_count}/{num_questions})"
     
-    if st.button(submit_label, type="primary", disabled=submit_disabled, use_container_width=True):
+    if st.button("Submit Quiz", type="primary", disabled=submit_disabled):
         st.session_state.quiz_submitted = True
         st.rerun()
 
@@ -463,60 +396,58 @@ if current_scenario_indices and len(current_scenario_indices) > 1:
             
             label = f"Q{idx + 1}"
             button_type = "primary" if is_current_scenario_q else "secondary"
-            icon = "🎯" if is_current_scenario_q else "📖"
             
-            if st.button(f"{icon} {label}", key=f"scenario_nav_{current_scenario}_{q_idx}", type=button_type, use_container_width=True):
+            if st.button(label, key=f"scenario_nav_{current_scenario}_{q_idx}", type=button_type, use_container_width=True):
                 st.session_state.current_q = q_idx
                 st.rerun()
 
 # --- Progress Section ---
-st.write("---")
-st.write("**Progress Overview:**")
-
 answered_count = len(st.session_state.user_answers)
 progress_percentage = answered_count / num_questions if num_questions > 0 else 0
 
-# Progress bar with better styling
-col_prog1, col_prog2 = st.columns([3, 1])
-with col_prog1:
-    st.progress(progress_percentage, text=f"Progress: {answered_count}/{num_questions} questions answered")
-with col_prog2:
-    st.metric("Completion", f"{progress_percentage:.1%}")
+st.progress(progress_percentage)
+st.write(f"Progress: {answered_count}/{num_questions} questions answered")
+st.write(f"Current question: {i+1}/{num_questions}")
 
-# --- Quick Stats ---
-st.write("**Quick Stats:**")
-stats_col1, stats_col2, stats_col3, stats_col4 = st.columns(4)
+# --- Useful Information Section ---
+st.write("---")
 
-with stats_col1:
+# Use 4 columns for compact layout
+col_info1, col_info2, col_info3, col_info4 = st.columns(4)
+
+with col_info1:
     completion_rate = (answered_count / num_questions) * 100 if answered_count > 0 else 0
-    st.metric("Questions Answered", f"{answered_count}/{num_questions}")
+    st.metric("Completed", f"{completion_rate:.0f}%")
 
-with stats_col2:
+with col_info2:
     remaining = num_questions - answered_count
     st.metric("Remaining", remaining)
 
-with stats_col3:
-    if answered_count == num_questions:
-        st.metric("Status", "✅ Complete")
-    elif answered_count > 0:
-        st.metric("Status", "🟡 In Progress")
+with col_info3:
+    if is_last_question:
+        st.metric("Status", "Final")
+    elif answered_count == num_questions:
+        st.metric("Status", "Done")
     else:
-        st.metric("Status", "❌ Not Started")
+        st.metric("Status", f"{i+1}/{num_questions}")
 
-with stats_col4:
-    current_position = f"{i+1}/{num_questions}"
-    st.metric("Current", current_position)
+with col_info4:
+    if answered_count == num_questions:
+        st.metric("Submit", "✅ Ready")
+    elif answered_count > 0:
+        st.metric("Submit", "🟡 Partial")
+    else:
+        st.metric("Submit", "❌ No")
 
-if answered_count > 0 and answered_count < num_questions:
-    st.info(f"📊 You've answered {answered_count} questions. {remaining} questions remaining. You can submit anytime!")
-elif answered_count == num_questions:
-    st.success("🎉 All questions answered! You're ready to submit your quiz!")
+# --- Quick Stats ---
+if answered_count > 0:
+    st.info(f"📊 **Quick Stats**: You've answered {answered_count} questions. {remaining} questions remaining. You can submit anytime!")
+    
+    if answered_count < num_questions:
+        st.warning(f"⚠️ Note: You haven't answered all questions. You can still submit with {answered_count}/{num_questions} answered.")
 
 # --- Compact Question Navigator ---
 if not st.session_state.quiz_submitted:
-    st.write("---")
-    st.write("**Question Navigator:**")
-    
     questions_per_row = 10
     num_rows = (num_questions + questions_per_row - 1) // questions_per_row
     
@@ -537,14 +468,12 @@ if not st.session_state.quiz_submitted:
                     has_scenario = True
                 
                 label = f"{q_num + 1}"
-                icon = "🎯" if is_current else ("✅" if is_answered else "📝")
                 if has_scenario:
-                    icon = "📖" + icon
+                    label = f"📖{q_num + 1}"
                 
                 button_type = "primary" if is_current else "secondary"
                 
-                if st.button(f"{icon}", key=f"nav_{q_num}", type=button_type, use_container_width=True, 
-                           help=f"Question {q_num + 1}" + (" (Current)" if is_current else "") + (" (Answered)" if is_answered else "")):
+                if st.button(label, key=f"nav_{q_num}", type=button_type, use_container_width=True):
                     st.session_state.current_q = q_num
                     st.rerun()
 
@@ -577,7 +506,7 @@ if st.session_state.quiz_submitted:
     pass_threshold = 75
     
     # Display results
-    st.write("## 🎯 Quiz Submitted! Here are your results:")
+    st.write("## Quiz Submitted! Here are your results:")
     
     answered_count = len(st.session_state.user_answers)
     st.write(f"**Submission Summary**: You submitted with {answered_count}/{num_questions} questions answered.")
@@ -655,10 +584,11 @@ if st.session_state.quiz_submitted:
     
     # Option to restart
     st.write("---")
-    if st.button("🔄 Start New Quiz", type="primary", use_container_width=True):
+    if st.button("Start New Quiz", type="primary"):
         st.session_state.current_q = 0
         st.session_state.user_answers = {}
         st.session_state.shuffled_options = {}
         st.session_state.quiz_completed = False
         st.session_state.quiz_submitted = False
+        # Keep questions_loaded and scenario_groups to avoid reloading
         st.rerun()
