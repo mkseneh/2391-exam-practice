@@ -592,4 +592,3 @@ if st.session_state.quiz_submitted:
         st.session_state.quiz_submitted = False
         # Keep questions_loaded and scenario_groups to avoid reloading
         st.rerun()
-        
