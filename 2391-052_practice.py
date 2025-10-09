@@ -118,6 +118,61 @@ st.markdown("""
         border-radius: 8px;
         padding: 10px;
     }
+
+        /* Results table styling - ADD THIS */
+    .results-table-container {
+        margin: 10px 0;
+        width: 100%;
+    }
+
+    .results-table {
+        border-collapse: collapse;
+        width: 100%;
+        font-family: Arial, sans-serif;
+        font-size: 0.9em;
+        margin: 0 auto;
+        /* CSS Variables for theming */
+        --border-color: #ccc;
+        --header-bg: #fafafa;
+        --row-even-bg: #fafafa;
+        --text-color: #000;
+        --bg-color: #fff;
+    }
+
+    /* Dark mode overrides for table */
+    @media (prefers-color-scheme: dark) {
+        .results-table {
+            --border-color: #555;
+            --header-bg: #333;
+            --row-even-bg: #2a2a2a;
+            --text-color: #fff;
+            --bg-color: #1e1e1e;
+        }
+    }
+
+    .results-table {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+    }
+
+    /* Force center alignment for ALL table cells */
+    .results-table th,
+    .results-table td {
+        border: 1px solid var(--border-color);
+        padding: 8px;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .results-table th {
+        background-color: var(--header-bg);
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .results-table tr:nth-child(even) {
+        background-color: var(--row-even-bg);
+    }
 </style>
 """, unsafe_allow_html=True)
 
