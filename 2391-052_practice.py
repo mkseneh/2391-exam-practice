@@ -655,9 +655,10 @@ def format_time(seconds):
     return f"{hours:02d}:{minutes:02d}:{secs:02d}"
 
 # --- Mangsam-style header / navigation ---
-st.markdown(
-    '<a href="https://learn.mangsam.co.uk/" target="_self" style="display:inline-block;color:#f4f4f4;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700;text-decoration:none;margin:0 0 4px 0;">&#8592; Mangsam Learning</a>',
-    unsafe_allow_html=True,
+st.link_button(
+    "← Mangsam Learning",
+    "https://learn.mangsam.co.uk/",
+    use_container_width=False,
 )
 
 st.markdown(
