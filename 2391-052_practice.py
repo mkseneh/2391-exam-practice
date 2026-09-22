@@ -656,21 +656,7 @@ def format_time(seconds):
 
 # --- Mangsam-style header / navigation ---
 st.markdown(
-    """
-    <a
-        href="https://learn.mangsam.co.uk/"
-        target="_self"
-        style="
-            display:inline-block;
-            color:#f4f4f4;
-            font-family:Arial,Helvetica,sans-serif;
-            font-size:14px;
-            font-weight:700;
-            text-decoration:none;
-            margin:0 0 4px 0;
-        "
-    >&#8592; Mangsam Learning</a>
-    """,
+    '<a href="https://learn.mangsam.co.uk/" target="_self" style="display:inline-block;color:#f4f4f4;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700;text-decoration:none;margin:0 0 4px 0;">&#8592; Mangsam Learning</a>',
     unsafe_allow_html=True,
 )
 
