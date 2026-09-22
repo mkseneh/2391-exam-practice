@@ -658,19 +658,33 @@ def format_time(seconds):
 components.html(
     """
     <style>
-        html, body { margin: 0; background: transparent; }
-        button {
+        html, body {
+            margin: 0;
+            background: transparent;
+        }
+
+        a {
             min-height: 30px;
+            display: inline-flex;
+            align-items: center;
             padding: 0;
             border: 0;
             background: transparent;
             color: #f4f4f4;
             font: 700 14px Arial, Helvetica, sans-serif;
+            text-decoration: none;
             cursor: pointer;
         }
-        button:hover { color: #ffffff; text-decoration: underline; }
+
+        a:hover {
+            color: #ffffff;
+            text-decoration: underline;
+        }
     </style>
-    <button onclick="window.parent.history.back()">← Mangsam Learning</button>
+
+    <a href="https://learn.mangsam.co.uk/" target="_top">
+        &#8592; Mangsam Learning
+    </a>
     """,
     height=32,
 )
