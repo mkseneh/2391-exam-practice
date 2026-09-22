@@ -655,38 +655,23 @@ def format_time(seconds):
     return f"{hours:02d}:{minutes:02d}:{secs:02d}"
 
 # --- Mangsam-style header / navigation ---
-components.html(
+st.markdown(
     """
-    <style>
-        html, body {
-            margin: 0;
-            background: transparent;
-        }
-
-        a {
-            min-height: 30px;
-            display: inline-flex;
-            align-items: center;
-            padding: 0;
-            border: 0;
-            background: transparent;
-            color: #f4f4f4;
-            font: 700 14px Arial, Helvetica, sans-serif;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        a:hover {
-            color: #ffffff;
-            text-decoration: underline;
-        }
-    </style>
-
-    <a href="https://learn.mangsam.co.uk/" target="_top">
-        &#8592; Mangsam Learning
-    </a>
+    <a
+        href="https://learn.mangsam.co.uk/"
+        target="_self"
+        style="
+            display:inline-block;
+            color:#f4f4f4;
+            font-family:Arial,Helvetica,sans-serif;
+            font-size:14px;
+            font-weight:700;
+            text-decoration:none;
+            margin:0 0 4px 0;
+        "
+    >&#8592; Mangsam Learning</a>
     """,
-    height=32,
+    unsafe_allow_html=True,
 )
 
 st.markdown(
