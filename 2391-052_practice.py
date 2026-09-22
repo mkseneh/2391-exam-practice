@@ -1,10 +1,12 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import random
 import requests
 import io
 import time
 import datetime
+import html
 
 # Security headers and configuration
 st.set_page_config(
@@ -176,6 +178,424 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# --- Mangsam Learning visual layer ---
+st.markdown("""
+<style>
+:root {
+    --m-bg: #000000;
+    --m-panel: #111111;
+    --m-control: #151515;
+    --m-control-hover: #202020;
+    --m-border: #414141;
+    --m-ring: #2b2b2b;
+    --m-text: #f4f4f4;
+    --m-muted: #909090;
+}
+
+html,
+body,
+.stApp,
+[data-testid="stAppViewContainer"] {
+    background: var(--m-bg) !important;
+    color: var(--m-text) !important;
+}
+
+.stApp {
+    font-family: Arial, Helvetica, sans-serif !important;
+}
+
+[data-testid="stHeader"] {
+    background: rgba(0, 0, 0, .96) !important;
+}
+
+#MainMenu,
+footer,
+[data-testid="stToolbar"] {
+    visibility: hidden !important;
+}
+
+.block-container {
+    width: min(1100px, 100%) !important;
+    max-width: 1100px !important;
+    padding-top: 2.1rem !important;
+    padding-bottom: 3rem !important;
+}
+
+/* ---------- page header ---------- */
+
+.mangsam-title {
+    width: min(760px, 100%);
+    margin: 10px auto 24px;
+    text-align: center;
+}
+
+.mangsam-title .kicker {
+    margin-bottom: 8px;
+    color: var(--m-muted);
+    font-size: .70rem;
+    font-weight: 700;
+    letter-spacing: .10em;
+    text-transform: uppercase;
+}
+
+.mangsam-title h1 {
+    margin: 0;
+    color: #ffffff;
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    line-height: 1.15;
+}
+
+.mangsam-title p {
+    margin: 10px 0 0;
+    color: #a5a5a5;
+    font-size: 1rem;
+}
+
+/* ---------- compact utility controls ---------- */
+
+.mangsam-control-label {
+    width: min(760px, 100%);
+    margin: 14px auto 7px;
+    color: #9b9b9b;
+    font-size: .70rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.mangsam-timer {
+    width: 100%;
+    min-height: 42px;
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-sizing: border-box;
+    border: 1px solid #303030;
+    border-radius: 10px;
+    background: #101010;
+    color: #f3f3f3;
+}
+
+.mangsam-timer .timer-name {
+    font-size: .84rem;
+    font-weight: 700;
+}
+
+.mangsam-timer strong {
+    margin-left: auto;
+    font-size: 1rem;
+    letter-spacing: .03em;
+}
+
+.mangsam-timer .timer-note {
+    color: var(--m-muted);
+    font-size: .74rem;
+}
+
+.mangsam-timer.timer-warning {
+    border-color: #6f562d;
+}
+
+.mangsam-timer.timer-critical {
+    border-color: #7f3030;
+}
+
+/* ---------- Streamlit controls ---------- */
+
+div[data-testid="stButton"] > button {
+    min-height: 42px !important;
+    border: 1px solid var(--m-border) !important;
+    border-radius: 9px !important;
+    background: var(--m-control) !important;
+    color: var(--m-text) !important;
+    box-shadow: none !important;
+    font-weight: 700 !important;
+}
+
+div[data-testid="stButton"] > button:hover:not(:disabled) {
+    background: var(--m-control-hover) !important;
+    border-color: #666666 !important;
+}
+
+div[data-testid="stButton"] > button:disabled {
+    background: #101010 !important;
+    color: #666666 !important;
+    border-color: #292929 !important;
+}
+
+div[data-testid="stTextInput"] input {
+    min-height: 42px !important;
+    border: 1px solid var(--m-border) !important;
+    border-radius: 9px !important;
+    background: var(--m-control) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+    font-size: 16px !important;
+}
+
+div[data-testid="stTextInput"] input:focus {
+    border-color: #777777 !important;
+    box-shadow: 0 0 0 1px #777777 !important;
+}
+
+div[data-testid="stTextInput"] input::placeholder {
+    color: #777777 !important;
+}
+
+/* ---------- question ---------- */
+
+.mangsam-question-meta {
+    width: max-content;
+    max-width: 100%;
+    margin: 20px auto 12px;
+    padding: 6px 12px;
+    box-sizing: border-box;
+    border: 1px solid #292929;
+    border-radius: 999px;
+    background: #101010;
+    color: #ededed;
+    font-size: .82rem;
+    font-weight: 750;
+}
+
+/* One continuous question card: question first, answers directly below. */
+.question-container {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 28px 30px 12px !important;
+    box-sizing: border-box !important;
+    border: 1px solid #303030 !important;
+    border-bottom: 0 !important;
+    border-radius: 14px 14px 0 0 !important;
+    background: var(--m-panel) !important;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, .72) !important;
+}
+
+.question-paragraph {
+    margin-bottom: 10px !important;
+    color: #ffffff !important;
+    font-size: 1.32rem !important;
+    font-weight: 700 !important;
+    line-height: 1.38 !important;
+}
+
+.question-paragraph:last-child {
+    margin-bottom: 0 !important;
+}
+
+.answer-prompt {
+    margin-top: 22px;
+    color: #a6a6a6;
+    font-size: .78rem;
+    font-weight: 700;
+}
+
+/* Streamlit defaults radio widgets to content-width. Force the whole answer
+   area to stretch so it forms the lower half of the question card. */
+div[data-testid="stElementContainer"]:has(div[data-testid="stRadio"]) {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+div[data-testid="stRadio"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 0 18px !important;
+    padding: 0 30px 28px !important;
+    box-sizing: border-box !important;
+    border: 1px solid #303030 !important;
+    border-top: 0 !important;
+    border-radius: 0 0 14px 14px !important;
+    background: var(--m-panel) !important;
+}
+
+div[data-testid="stRadio"] [role="radiogroup"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 10px !important;
+}
+
+div[data-testid="stRadio"] [role="radiogroup"] > * {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+div[data-testid="stRadio"] [role="radiogroup"] label {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 50px !important;
+    margin: 0 !important;
+    padding: 13px 15px !important;
+    display: flex !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
+    border: 1px solid #3b3b3b !important;
+    border-radius: 9px !important;
+    background: #181818 !important;
+    color: #f5f5f5 !important;
+}
+
+div[data-testid="stRadio"] [role="radiogroup"] label:hover {
+    background: #222222 !important;
+    border-color: #666666 !important;
+}
+
+div[data-testid="stRadio"] [role="radiogroup"] label:has(input:checked) {
+    background: #232d38 !important;
+    border-color: #6a9bc8 !important;
+    box-shadow: inset 0 0 0 1px #6a9bc8 !important;
+}
+
+/* ---------- scenarios ---------- */
+
+.scenario-container {
+    margin: 0 0 14px !important;
+    padding: 18px 20px !important;
+    border: 1px solid #343434 !important;
+    border-left: 3px solid #777777 !important;
+    border-radius: 12px !important;
+    background: #0d0d0d !important;
+    box-shadow: none !important;
+}
+
+.scenario-header {
+    color: #d7d7d7 !important;
+    font-size: .76rem !important;
+    letter-spacing: .06em;
+}
+
+.scenario-content {
+    color: #e6e6e6 !important;
+}
+
+.scenario-progress {
+    background: #1b1b1b !important;
+    color: #bdbdbd !important;
+}
+
+/* ---------- compact progress ---------- */
+
+.mangsam-progress {
+    width: max-content;
+    max-width: 100%;
+    margin: 16px auto 0;
+    padding: 6px 12px;
+    box-sizing: border-box;
+    border: 1px solid #292929;
+    border-radius: 999px;
+    background: #101010;
+    color: #9f9f9f;
+    font-size: .78rem;
+    font-weight: 700;
+}
+
+[data-testid="stCaptionContainer"] {
+    color: var(--m-muted) !important;
+}
+
+hr {
+    border-color: #292929 !important;
+}
+
+/* ---------- per-question answer feedback ---------- */
+
+.answer-feedback {
+    width: 100%;
+    margin: 12px 0 16px;
+    padding: 14px 16px;
+    box-sizing: border-box;
+    border: 1px solid #343434;
+    border-radius: 10px;
+    background: #111111;
+    color: #f5f5f5;
+    font-size: .96rem;
+    line-height: 1.45;
+}
+
+.answer-feedback.correct {
+    border-color: #29563a;
+    background: #0f1b14;
+}
+
+.answer-feedback.wrong {
+    border-color: #663838;
+    background: #1b1111;
+}
+
+.answer-feedback .feedback-title {
+    font-weight: 800;
+}
+
+.answer-feedback.correct .feedback-title {
+    color: #7ddc9a;
+}
+
+.answer-feedback.wrong .feedback-title {
+    color: #ff9696;
+}
+
+.answer-feedback .correct-answer {
+    margin-top: 6px;
+    color: #ededed;
+    font-weight: 700;
+}
+
+/* Checked questions stay readable even though the radio is locked. */
+div[data-testid="stRadio"] [role="radiogroup"] label:has(input:disabled) {
+    opacity: 1 !important;
+}
+
+@media (max-width: 700px) {
+    .block-container {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+    }
+
+    .mangsam-title {
+        margin-top: 4px;
+    }
+
+    .mangsam-title h1 {
+        font-size: 1.65rem;
+    }
+
+    .mangsam-title p {
+        font-size: .88rem;
+    }
+
+    .mangsam-timer {
+        gap: 8px;
+        padding: 0 10px;
+    }
+
+    .mangsam-timer .timer-note {
+        display: none;
+    }
+
+    .question-container {
+        padding: 20px 18px 10px !important;
+    }
+
+    .question-paragraph {
+        font-size: 1.12rem !important;
+        line-height: 1.35 !important;
+    }
+
+    div[data-testid="stRadio"] {
+        padding: 0 18px 20px !important;
+    }
+
+    div[data-testid="stRadio"] [role="radiogroup"] > label {
+        min-height: 46px !important;
+        padding: 11px 12px !important;
+    }
+}
+</style>
+""", unsafe_allow_html=True)
+
 # Initialize ALL session state variables at the beginning
 def initialize_session_state():
     """Initialize all session state variables"""
@@ -183,6 +603,7 @@ def initialize_session_state():
         st.session_state.initialized = True
         st.session_state.current_q = 0
         st.session_state.user_answers = {}
+        st.session_state.checked_questions = set()
         st.session_state.shuffled_options = {}
         st.session_state.quiz_completed = False
         st.session_state.quiz_submitted = False
@@ -220,9 +641,6 @@ def get_remaining_time():
     
     if remaining <= 0:
         st.session_state.time_up = True
-        if not st.session_state.auto_submitted and not st.session_state.quiz_submitted:
-            st.session_state.auto_submitted = True
-            st.session_state.quiz_submitted = True
         return 0
     
     return remaining
@@ -236,13 +654,36 @@ def format_time(seconds):
     secs = int(seconds % 60)
     return f"{hours:02d}:{minutes:02d}:{secs:02d}"
 
-# Add refresh button and title in the same row
-col1, col2 = st.columns([3, 1])
-with col1:
-    st.title("Initial and Periodic Inspection and Testing of Electrical Installations (2391-052)")
-with col2:
-    if st.button("🔄 Refresh Questions", type="secondary"):
-        # Clear cache and reset ONLY what's necessary
+# --- Mangsam-style header / navigation ---
+components.html(
+    """
+    <style>
+        html, body { margin: 0; background: transparent; }
+        button {
+            min-height: 30px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: #f4f4f4;
+            font: 700 14px Arial, Helvetica, sans-serif;
+            cursor: pointer;
+        }
+        button:hover { color: #ffffff; text-decoration: underline; }
+    </style>
+    <button onclick="window.parent.history.back()">← Mangsam Learning</button>
+    """,
+    height=32,
+)
+
+st.markdown(
+    """<div class="mangsam-title"><div class="kicker">Skilled Trades · City &amp; Guilds 2391-052</div><h1>Electrical Installations Practice Quiz</h1><p>Initial and Periodic Inspection and Testing</p></div>""",
+    unsafe_allow_html=True,
+)
+
+# Keep refresh available, but out of the page header so it cannot clip.
+refresh_spacer, refresh_col = st.columns([5, 1])
+with refresh_col:
+    if st.button("Refresh questions", type="secondary", use_container_width=True):
         st.cache_data.clear()
         st.session_state.questions_loaded = False
         st.session_state.questions_df = pd.DataFrame()
@@ -321,39 +762,53 @@ questions_df = st.session_state.questions_df
 num_questions = len(questions_df)
 
 # Show last update time (stays visible)
-st.caption(f"Questions: {num_questions} | Last updated: {time.strftime('%H:%M:%S')}")
 
 # --- Exam Timer Display ---
 if not st.session_state.quiz_submitted:
     remaining_time = get_remaining_time()
-    
-    # Check if time is up and auto-submit
-    if st.session_state.time_up and not st.session_state.quiz_submitted:
-        st.session_state.quiz_submitted = True
-        st.rerun()
-    
-    # Start timer automatically when user starts answering or show start button
-    if not st.session_state.exam_started:
-        st.warning("⏰ **Exam Timer**: 3 hours | Click 'Start Exam Timer' to begin")
-        if st.button("🚀 Start Exam Timer", type="primary"):
-            start_exam_timer()
-            st.rerun()
-    else:
-        # Display timer with appropriate styling
-        timer_class = "timer-container"
-        if remaining_time < 1800:  # 30 minutes
-            timer_class += " timer-warning"
-        if remaining_time < 600:   # 10 minutes
-            timer_class += " timer-critical"
-        
-        timer_html = f"""
-        <div class="{timer_class}">
-            <div style="font-size: 1.1em;">⏰ EXAM TIME REMAINING</div>
-            <div style="font-size: 1.8em; margin: 10px 0;">{format_time(remaining_time)}</div>
-            <div style="font-size: 0.9em;">3 Hour Time Limit</div>
-        </div>
-        """
-        st.markdown(timer_html, unsafe_allow_html=True)
+
+    timer_status_col, timer_action_col = st.columns([5, 1])
+
+    with timer_status_col:
+        if not st.session_state.exam_started:
+            st.markdown(
+                """
+                <div class="mangsam-timer">
+                    <span class="timer-name">Exam timer</span>
+                    <strong>03:00:00</strong>
+                    <span class="timer-note">Not started</span>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        else:
+            timer_class = "mangsam-timer"
+            if remaining_time < 1800:
+                timer_class += " timer-warning"
+            if remaining_time < 600:
+                timer_class += " timer-critical"
+
+            st.markdown(
+                f"""
+                <div class="{timer_class}">
+                    <span class="timer-name">Exam timer</span>
+                    <strong>{format_time(remaining_time)}</strong>
+                    <span class="timer-note">3 hour limit</span>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+    with timer_action_col:
+        if not st.session_state.exam_started:
+            if st.button("Start Timer", type="secondary", use_container_width=True):
+                start_exam_timer()
+                st.rerun()
+        else:
+            st.markdown(
+                '<div style="height:42px"></div>',
+                unsafe_allow_html=True,
+            )
 
 # --- Pre-process scenario groups ---
 def build_scenario_groups(df):
@@ -381,6 +836,42 @@ if i >= len(questions_df):
 
 row = questions_df.iloc[i]
 
+# --- Compact Go to question control ---
+if not st.session_state.quiz_submitted:
+    st.markdown(
+        '<div class="mangsam-control-label">Go to question</div>',
+        unsafe_allow_html=True,
+    )
+
+    goto_input_col, goto_button_col = st.columns([5, 1])
+
+    with goto_input_col:
+        goto_value = st.text_input(
+            "Go to question",
+            key="goto_question_number",
+            label_visibility="collapsed",
+            placeholder=f"Question number (1-{num_questions})",
+        )
+
+    with goto_button_col:
+        goto_clicked = st.button(
+            "Go",
+            key="goto_button",
+            use_container_width=True,
+        )
+
+    if goto_clicked:
+        try:
+            requested_question = int(str(goto_value).strip())
+        except ValueError:
+            requested_question = 0
+
+        if 1 <= requested_question <= num_questions:
+            st.session_state.current_q = requested_question - 1
+            st.rerun()
+        else:
+            st.warning(f"Enter a question number from 1 to {num_questions}.")
+
 # --- Check if this is the last question ---
 is_last_question = i == num_questions - 1
 
@@ -394,8 +885,12 @@ if i not in st.session_state.shuffled_options:
 
 shuffled_options = st.session_state.shuffled_options[i]
 
-# --- Display Question Header FIRST ---
-st.subheader(f"Question {i+1} of {num_questions}")
+# --- Compact question status ---
+answered_count = len(st.session_state.user_answers)
+st.markdown(
+    f"""<div class="mangsam-question-meta">Question {i + 1} of {num_questions}</div>""",
+    unsafe_allow_html=True,
+)
 
 # --- Display Scenario (if available) ---
 current_scenario = str(row.get('Scenario', '')).strip()
@@ -432,7 +927,6 @@ if current_scenario and current_scenario != 'nan' and current_scenario != '':
             st.warning("Could not load scenario information")
 
 # --- Display the actual question with paragraph support ---
-st.write("**Question:**")
 question_text = str(row['Question'])
 
 # Split question into paragraphs and display each as separate markdown
@@ -442,7 +936,7 @@ question_paragraphs = [p.strip() for p in question_text.split('\n') if p.strip()
 question_html = '<div class="question-container">'
 for paragraph in question_paragraphs:
     question_html += f'<div class="question-paragraph">{paragraph}</div>'
-question_html += '</div>'
+question_html += '<div class="answer-prompt">Choose your answer:</div></div>'
 
 st.markdown(question_html, unsafe_allow_html=True)
 
@@ -456,259 +950,101 @@ if previous_answer is not None:
 else:
     selected_index = None
 
-# --- Display radio button ---
-user_answer = st.radio("Choose your answer:", 
-                       shuffled_options, 
-                       index=selected_index,
-                       key=f"q{i}")
+# --- Display answer options ---
+question_checked = i in st.session_state.checked_questions
 
-# Store the selected option
-if user_answer is not None:
+user_answer = st.radio(
+    "Choose your answer:",
+    shuffled_options,
+    index=selected_index,
+    key=f"q{i}",
+    label_visibility="collapsed",
+    width="stretch",
+    disabled=question_checked,
+)
+
+# Store the selected option, but do not reveal the answer until Check Answer.
+if user_answer is not None and not question_checked:
     st.session_state.user_answers[i] = user_answer
-    # Auto-start timer when user starts answering
+
+    # Auto-start timer when the learner begins answering.
     if not st.session_state.exam_started:
         start_exam_timer()
 
-# --- Navigation buttons ---
+# --- Per-question Check Answer, matching the Mangsam quiz flow ---
+check_disabled = user_answer is None or question_checked
+
+if st.button(
+    "Check Answer",
+    key=f"check_answer_{i}",
+    disabled=check_disabled,
+    use_container_width=True,
+):
+    st.session_state.user_answers[i] = user_answer
+    st.session_state.checked_questions.add(i)
+    st.rerun()
+
+# Reveal only this question's result. No end-of-quiz results dump.
+if question_checked:
+    selected_answer = st.session_state.user_answers.get(i)
+    correct_answer = str(row["CorrectAnswer"])
+
+    if selected_answer == correct_answer:
+        st.markdown(
+            """
+            <div class="answer-feedback correct">
+                <div class="feedback-title">Correct</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    else:
+        safe_correct_answer = html.escape(correct_answer)
+        st.markdown(
+            f"""
+            <div class="answer-feedback wrong">
+                <div class="feedback-title">Incorrect</div>
+                <div class="correct-answer">Correct answer: {safe_correct_answer}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+# --- Mangsam-style question navigation ---
 col1, col2, col3 = st.columns([1, 1, 1])
+
 with col1:
-    if st.button("Previous", disabled=(i == 0)):
+    if st.button(
+        "← Previous Question",
+        disabled=(i == 0),
+        use_container_width=True,
+    ):
         st.session_state.current_q -= 1
         st.rerun()
+
 with col2:
-    if is_last_question:
-        if st.button("Next", disabled=True):
-            pass
-    else:
-        if st.button("Next"):
-            st.session_state.current_q += 1
-            st.rerun()
+    if st.button(
+        "Skip Question",
+        disabled=is_last_question,
+        use_container_width=True,
+    ):
+        st.session_state.current_q += 1
+        st.rerun()
+
 with col3:
-    answered_count = len(st.session_state.user_answers)
-    submit_disabled = answered_count == 0 or st.session_state.time_up
-    
-    submit_label = "Submit Quiz"
-    if st.session_state.time_up:
-        submit_label = "Time's Up!"
-    
-    if st.button(submit_label, type="primary", disabled=submit_disabled):
-        st.session_state.quiz_submitted = True
+    if st.button(
+        "Next Question →",
+        disabled=(not question_checked or is_last_question),
+        use_container_width=True,
+    ):
+        st.session_state.current_q += 1
         st.rerun()
 
-# --- Scenario Navigation ---
-if current_scenario_indices and len(current_scenario_indices) > 1:
-    st.write("---")
-    st.write("**Scenario Navigation:**")
-    
-    scenario_cols = st.columns(len(current_scenario_indices))
-    
-    for idx, q_idx in enumerate(current_scenario_indices):
-        with scenario_cols[idx]:
-            is_current_scenario_q = q_idx == i
-            is_answered = q_idx in st.session_state.user_answers
-            
-            label = f"Q{idx + 1}"
-            button_type = "primary" if is_current_scenario_q else "secondary"
-            
-            if st.button(label, key=f"scenario_nav_{current_scenario}_{q_idx}", type=button_type, use_container_width=True):
-                st.session_state.current_q = q_idx
-                st.rerun()
-
-# --- Progress Section ---
+# --- Compact progress ---
 answered_count = len(st.session_state.user_answers)
-progress_percentage = answered_count / num_questions if num_questions > 0 else 0
+remaining = num_questions - answered_count
 
-st.progress(progress_percentage)
-st.write(f"Progress: {answered_count}/{num_questions} questions answered")
-st.write(f"Current question: {i+1}/{num_questions}")
-
-# --- Useful Information Section ---
-st.write("---")
-
-# Use 4 columns for compact layout
-col_info1, col_info2, col_info3, col_info4 = st.columns(4)
-
-with col_info1:
-    completion_rate = (answered_count / num_questions) * 100 if answered_count > 0 else 0
-    st.metric("Completed", f"{completion_rate:.0f}%")
-
-with col_info2:
-    remaining = num_questions - answered_count
-    st.metric("Remaining", remaining)
-
-with col_info3:
-    if is_last_question:
-        st.metric("Status", "Final")
-    elif answered_count == num_questions:
-        st.metric("Status", "Done")
-    else:
-        st.metric("Status", f"{i+1}/{num_questions}")
-
-with col_info4:
-    if answered_count == num_questions:
-        st.metric("Submit", "✅ Ready")
-    elif answered_count > 0:
-        st.metric("Submit", "🟡 Partial")
-    else:
-        st.metric("Submit", "❌ No")
-
-# --- Quick Stats ---
-if answered_count > 0:
-    st.info(f"📊 **Quick Stats**: You've answered {answered_count} questions. {remaining} questions remaining. You can submit anytime!")
-    
-    if answered_count < num_questions:
-        st.warning(f"⚠️ Note: You haven't answered all questions. You can still submit with {answered_count}/{num_questions} answered.")
-
-# --- Compact Question Navigator ---
-if not st.session_state.quiz_submitted:
-    questions_per_row = 10
-    num_rows = (num_questions + questions_per_row - 1) // questions_per_row
-    
-    for row_num in range(num_rows):
-        start_q = row_num * questions_per_row
-        end_q = min((row_num + 1) * questions_per_row, num_questions)
-        
-        cols = st.columns(questions_per_row)
-        
-        for col_idx, q_num in enumerate(range(start_q, end_q)):
-            with cols[col_idx]:
-                is_current = q_num == i
-                is_answered = q_num in st.session_state.user_answers
-                
-                has_scenario = False
-                scenario_value = str(questions_df.iloc[q_num].get('Scenario', ''))
-                if scenario_value.strip() and scenario_value != 'nan':
-                    has_scenario = True
-                
-                label = f"{q_num + 1}"
-                if has_scenario:
-                    label = f"📖{q_num + 1}"
-                
-                button_type = "primary" if is_current else "secondary"
-                
-                if st.button(label, key=f"nav_{q_num}", type=button_type, use_container_width=True):
-                    st.session_state.current_q = q_num
-                    st.rerun()
-
-# --- Results page after submission ---
-if st.session_state.quiz_submitted:
-    # Show auto-submission message if time was up
-    if st.session_state.time_up and st.session_state.auto_submitted:
-        st.error("⏰ **TIME'S UP!** Your exam has been automatically submitted.")
-    
-    # Calculate score
-    correct_count = 0
-    results = []
-    
-    for q_index in range(num_questions):
-        row = questions_df.iloc[q_index]
-        user_answer = st.session_state.user_answers.get(q_index, "Not answered")
-        correct_answer = str(row['CorrectAnswer'])
-        is_correct = user_answer == correct_answer
-        
-        if is_correct:
-            correct_count += 1
-        
-        results.append({
-            'Question Number': q_index + 1,
-            'Scenario': str(row.get('Scenario', '')),
-            'Question': str(row['Question']),
-            'Your Answer': user_answer,
-            'Correct Answer': correct_answer,
-            'Status': '✅ Correct' if is_correct else '❌ Incorrect'
-        })
-    
-    # Calculate percentage
-    percentage_score = (correct_count / num_questions) * 100
-    pass_threshold = 75
-    
-    # Display results
-    st.write("## Quiz Submitted! Here are your results:")
-    
-    answered_count = len(st.session_state.user_answers)
-    st.write(f"**Submission Summary**: You submitted with {answered_count}/{num_questions} questions answered.")
-    
-    if percentage_score >= pass_threshold:
-        st.balloons()
-        st.success(f"🎉 **CONGRATULATIONS!** 🎉")
-        st.success(f"## Final Score: {correct_count}/{num_questions} ({percentage_score:.1f}%)")
-        st.success("### 🏆 You have PASSED the assessment! 🏆")
-    else:
-        st.error(f"## Final Score: {correct_count}/{num_questions} ({percentage_score:.1f}%)")
-        st.warning(f"### ❌ You did not pass this time")
-        st.info(f"**Required pass mark:** {pass_threshold}%")
-        st.info(f"**Your score:** {percentage_score:.1f}%")
-        st.info("**Keep practicing and try again!**")
-    
-    # Progress bar showing pass/fail status
-    st.write("### Pass/Fail Status:")
-    if percentage_score >= pass_threshold:
-        st.progress(percentage_score/100, text=f"PASSED - {percentage_score:.1f}%")
-    else:
-        st.progress(percentage_score/100, text=f"FAILED - {percentage_score:.1f}% (Need {pass_threshold}%)")
-    
-    # Display all questions and answers
-    st.write("## Detailed Results:")
-    
-    for result in results:
-        with st.container():
-            # Display scenario if available
-            scenario_value = result['Scenario']
-            if scenario_value.strip() and scenario_value != 'nan':
-                scenario_paragraphs = [p.strip() for p in scenario_value.split('\n') if p.strip()]
-                
-                scenario_html = '''
-                <div class="scenario-container">
-                    <div class="scenario-header">📖 SCENARIO</div>
-                '''
-                
-                for paragraph in scenario_paragraphs:
-                    scenario_html += f'<div class="scenario-content">{paragraph}</div>'
-                
-                scenario_html += '</div>'
-                st.markdown(scenario_html, unsafe_allow_html=True)
-            
-            st.write(f"### Question {result['Question Number']}")
-            st.write("**Question:**")
-            
-            # Display question with paragraphs in results
-            question_text = result['Question']
-            question_paragraphs = [p.strip() for p in question_text.split('\n') if p.strip()]
-            
-            question_html = '<div class="question-container">'
-            for paragraph in question_paragraphs:
-                question_html += f'<div class="question-paragraph">{paragraph}</div>'
-            question_html += '</div>'
-            
-            st.markdown(question_html, unsafe_allow_html=True)
-            
-            # Color coding for answers
-            st.write("**Your Answer:**")
-            if result['Status'] == '✅ Correct':
-                st.success(f"{result['Your Answer']} ✅")
-                st.success(f"**Correct Answer:** {result['Correct Answer']}")
-            else:
-                st.error(f"{result['Your Answer']} ❌")
-                st.success(f"**Correct Answer:** {result['Correct Answer']}")
-            
-            # Show hint if available
-            if result['Status'] == '❌ Incorrect':
-                hint = questions_df.iloc[result['Question Number']-1].get('Hint')
-                if pd.notna(hint) and str(hint).strip():
-                    st.info(f"💡 **Hint:** {hint}")
-            
-            st.write("---")
-    
-    # Option to restart
-    st.write("---")
-    if st.button("Start New Quiz", type="primary"):
-        st.session_state.current_q = 0
-        st.session_state.user_answers = {}
-        st.session_state.shuffled_options = {}
-        st.session_state.quiz_completed = False
-        st.session_state.quiz_submitted = False
-        st.session_state.exam_started = False
-        st.session_state.exam_start_time = None
-        st.session_state.time_up = False
-        st.session_state.auto_submitted = False
-        st.rerun()
+st.markdown(
+    f"""<div class="mangsam-progress">{answered_count} of {num_questions} answered · {remaining} remaining</div>""",
+    unsafe_allow_html=True,
+)
